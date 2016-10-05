@@ -7,12 +7,14 @@ import javax.net.ssl.*;
 public class Voter{
 	private InetAddress host;
 	private int port;
-
-	static final int DEFAULT_PORT = 8189;
+	private Boolean voteAccess = true;
+	static final int CTF_PORT = 8190;
+	static final int CLA_PORT = 8189;
 	static final String KEYSTORE = "keystores/secureKeyStore.ks";
 	static final String TRUSTSTORE = "keystores/secureTrustStore.ks";
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
+
 
 
 	//constructer
@@ -38,21 +40,45 @@ public class Voter{
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 			tmf.init(ts);
 			// initlize sslContext with kmf and tmf and null=default random number which generates a secret key
+			
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
 			SSLSocketFactory sslFact = sslContext.getSocketFactory();
-			// negotiating with the server to agree upon the cipher suite that will be used
-			SSLSocket client = (SSLSocket)sslFact.createSocket(host, port);
+			SSLSocket client = (SSLSocket)sslFact.createSocket(host, CLA_PORT);
 			client.setEnabledCipherSuites(client.getSupportedCipherSuites());
 
 			BufferedReader socketIn;
 			socketIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
 
-			String userID = "kajsa:1234";
-			socketOut.println(userID);
-			socketOut.println("");
+			//send a message to the CLA asking for a validation number, must  10
+			System.out.println("Enter your digits: ");
+			String theDigits = (new BufferedReader(new InputStreamReader(System.in))).readLine();
+			socketOut.println(theDigits);
+
+			//ifuser is allowed to vote
+			if(voteAccess){
+				//connect to CTFserver
+				System.out.println("i if");
+				SSLContext sslContextCTF = SSLContext.getInstance("TLS");
+				sslContextCTF.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+				SSLSocketFactory sslFactCTF = sslContextCTF.getSocketFactory();
+				SSLSocket clientToCTF = (SSLSocket)sslFactCTF.createSocket(host, CTF_PORT);
+				clientToCTF.setEnabledCipherSuites(sslFactCTF.getSupportedCipherSuites());
+
+				BufferedReader socketInCTF;
+				socketInCTF = new BufferedReader(new InputStreamReader(clientToCTF.getInputStream()));
+				PrintWriter socketOutCTF = new PrintWriter(clientToCTF.getOutputStream(), true);
+
+				//send voting message to CTF
+				String validationNr = "12345";
+				String theVote = createVote(validationNr);
+				/*socketOutCTF.println(theVote);
+				socketOutCTF.println("");*/
+			}
+			else System.out.println("To bad, you can't vote!");		
 
 		} catch (Exception x) {
 			System.out.println(x);
@@ -60,7 +86,27 @@ public class Voter{
 		}
 	}
 
-	//send a message to the CLA asking for a validation number.
+	public String createVote(String _validationNr){
+		
+		String ans = _validationNr + " ";
+
+		try{
+			System.out.println("Enter a username: ");
+			ans += (new BufferedReader(new InputStreamReader(System.in))).readLine() + " ";
+			System.out.println("********************************");
+			System.out.println("What do you want for dinner?");
+			System.out.println("1. Pulled pork");
+			System.out.println("2. Pizza");
+			System.out.println("3. Nothing, I'm on a diet");
+			System.out.println("********************************");
+			ans += (new BufferedReader(new InputStreamReader(System.in))).readLine();
+		}catch (Exception x) {
+			System.out.println(x);
+			x.printStackTrace();
+		}
+
+		return ans;
+	}
 
 	//creates a identification number
 	//creates a message: identification nr, validation nr & vote
@@ -69,7 +115,7 @@ public class Voter{
 	public static void main (String[] args){
 		try {
 			InetAddress host = InetAddress.getLocalHost();
-			int port = DEFAULT_PORT;
+			int port = CLA_PORT;
 			if(args.length > 0) {
 				port = Integer.parseInt(args[0]);
 			}
