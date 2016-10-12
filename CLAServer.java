@@ -8,12 +8,13 @@ import java.util.*;
 //Class that maintains Validations ID Lists
 public class CLAServer {
 	//send back random validation number to voter & to CTF
-	//exempel finns i artiekel
+	//exempel finns i artikel
 
 	private int port;
-	static final int DEFAULT_PORT = 8189;
-	static final String KEYSTORE = "/keystores/secureKeyStore.ks";
-	static final String TRUSTSTORE = "/keystores/secureTrustStore.ks";
+	static final int CLIENT_PORT = 8189;
+	static final int CTF_PORT = 8190;
+	static final String KEYSTORE = "keystores/secureKeyStore.ks";
+	static final String TRUSTSTORE = "keystores/secureTrustStore.ks";
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
@@ -51,9 +52,10 @@ public class CLAServer {
 			
 			SSLServerSocketFactory sslServerFactory = sslContext.getServerSocketFactory();
 			// start listning for connections on the specfic port
-			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(port);
+			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(CLIENT_PORT);
 			sss.setEnabledCipherSuites(sss.getSupportedCipherSuites());
 			SSLSocket incoming = (SSLSocket)sss.accept();
+			System.out.println("CLA connected to server");
 			// get content from client
 			BufferedReader in;
 			in = new BufferedReader( new InputStreamReader(incoming.getInputStream()));
@@ -95,7 +97,7 @@ public class CLAServer {
 	}
 
 	public static void main (String[] args) {
-		int port = DEFAULT_PORT;
+		int port = CLIENT_PORT;
 		if(args.length > 0) {
 			port = Integer.parseInt(args[0]);
 		}
