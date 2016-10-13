@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 import java.net.*;
-import java.security.KeyStore;
+import java.security.*;
 import javax.net.ssl.*;
 
 public class Voter{
@@ -16,7 +16,7 @@ public class Voter{
 
 
 	//constructer
-	public Voter(InetAddress host, int port){
+	public Voter(InetAddress host, InetAddress port){
 		this.host = host;
 		this.port = port;
 	}
@@ -51,8 +51,11 @@ public class Voter{
 			PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
 
 			String userID = "kajsa:1234";
-			socketOut.println(userID);
+			String ask = "1234567890";
+			socketOut.println(ask);
 			socketOut.println("");
+			System.out.println("hejhejhej");
+			System.out.println(socketIn.readLine());
 
 		} catch (Exception x) {
 			System.out.println(x);
