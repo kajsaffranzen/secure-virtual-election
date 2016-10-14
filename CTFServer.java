@@ -6,22 +6,25 @@ import javax.net.ssl.*;
 
 public class CTFServer implements Runnable{
 	private int port;
+	private String keystore; 
+	private String truststore;
 	private ArrayList<Vote> theVotes;
-	//private ArrayList<Integer> theResult;
 	private Map<Integer, Integer> theResult;
-	static final int DEFAULT_PORT = 8190;
 	static final int CLIENT_PORT = 8190;
-	static final int CTL_PORT = 8189;
-	static final String KEYSTORE = "keystores/secureKeyStore.ks";
-	static final String TRUSTSTORE = "keystores/secureTrustStore.ks";
+	static final int CLA_PORT = 8187;
+	static private String KEYSTORE = "keystores/secureKeyStore.ks";
+	static private String TRUSTSTORE = "keystores/secureTrustStore.ks";
+	static private String CTFKEYSTORE = "keystores/ctfKeystore.ks";
+	static private String CTFTRUSTSTORE = "keystores/CTFtruststore.ks";
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
-	//SSLServerSocket sss;
 	SSLSocket incoming;
 
 	//constructor
-	CTFServer (int port){
+	CTFServer (int port, String keystore, String truststore){
 		this.port = port;
+		this.keystore = keystore;
+		this.truststore = truststore;
 	}
 
 	public void setSSLSocket(SSLSocket s){
@@ -35,13 +38,13 @@ public class CTFServer implements Runnable{
 	}
 
 
-	public SSLServerSocket sslConnection(){
+	public SSLServerSocket sslConnection(int port, String keyStore, String trustStore){
 		try{
 			KeyStore ks = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(KEYSTORE),
+			ks.load(new FileInputStream(keyStore),
 				ALIASPASSWD.toCharArray());
 			KeyStore ts = KeyStore.getInstance("JCEKS");
-			ts.load(new FileInputStream(TRUSTSTORE),
+			ts.load(new FileInputStream(trustStore),
 					STOREPASSWD.toCharArray());
 
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
@@ -54,8 +57,9 @@ public class CTFServer implements Runnable{
 			
 			SSLServerSocketFactory sslServerFactory = sslContext.getServerSocketFactory();
 			// start listning for connections on the specfic port
-			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(CLIENT_PORT);
+			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(port);
 			sss.setEnabledCipherSuites(sss.getSupportedCipherSuites());
+
 			return sss;
 		}catch (Exception x) {
 			System.out.println(x);
@@ -68,7 +72,6 @@ public class CTFServer implements Runnable{
 	//get the generated ssl key
 	public void run(){
 		try{
-
 			//get & send content from client
 			BufferedReader in = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
 			PrintWriter out = new PrintWriter(incoming.getOutputStream(), true);
@@ -81,6 +84,7 @@ public class CTFServer implements Runnable{
 			while(!(str = in.readLine()).equals("")){
 				try{
 					if(port == CLIENT_PORT){
+						System.out.println("i CLIENT_PORT");
 						String[] s = str.split(" ");
 						int choice = Integer.parseInt(s[0]);
 
@@ -104,8 +108,20 @@ public class CTFServer implements Runnable{
 
 						
 					}
-					else if(port == CTL_PORT){
-						System.out.println("i CTL_PORT");
+					else if(port == CLA_PORT){
+						System.out.println("i CLA_PORT");
+						//do something
+						System.out.println("str: " + str);
+						in.close();
+						out.close();
+						incoming.close();
+						
+						keystore = KEYSTORE;
+						truststore = TRUSTSTORE;
+						SSLServerSocket ss = sslConnection(CLIENT_PORT, keystore, truststore);
+						System.out.println("sss: " + ss);
+						incoming = (SSLSocket)ss.accept();
+						//System.out.println("CTF is active with client");
 					}
 					
 					
@@ -113,8 +129,10 @@ public class CTFServer implements Runnable{
 					out.println("Sorry, something is wrong!");
 				}
 			}
-			
+			System.out.println("CTFport: " + port);
+			in.close();
 
+			run();
 
 		}catch (Exception x) {
 			System.out.println(x);
@@ -172,19 +190,23 @@ public class CTFServer implements Runnable{
 	public static void main (String[] args){
 		CTFServer addCTFServer;
 		try{
-			int port = CLIENT_PORT;
-			addCTFServer = new CTFServer(port);
+			int port = CLA_PORT;
+			
+			String keystore = CTFKEYSTORE;
+			String truststore = CTFTRUSTSTORE;
+			addCTFServer = new CTFServer(port, keystore, truststore);
 			addCTFServer.setVotingList();
-			SSLServerSocket sss = addCTFServer.sslConnection();
+			
 
-			while(true){
+			//while(true){
+				SSLServerSocket sss = addCTFServer.sslConnection(port, keystore, truststore);
 				SSLSocket incoming = (SSLSocket)sss.accept();
-				System.out.println("CTF is active!");
+				System.out.println("CTF is active!: " );
 				addCTFServer.setSSLSocket(incoming);
-				
+				addCTFServer.run();
 				Thread t = new Thread(addCTFServer);
 				t.start();
-			}
+			//}
 		}catch (Exception x) {
 			System.out.println(x);
 			x.printStackTrace();
