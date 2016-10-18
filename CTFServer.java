@@ -18,6 +18,7 @@ public class CTFServer{
 	static final String ALIASPASSWD = "123456";
 
 	private ArrayList<String> randomNumbers;
+	private ArrayList<String> thecheckOff;
 	private ArrayList<Vote> theVotes; 
 	private Map<Integer, Integer> theResult;
 
@@ -29,6 +30,7 @@ public class CTFServer{
 		theVotes = new ArrayList<Vote>();
 		theResult = new HashMap<Integer, Integer>();
 		randomNumbers = new ArrayList<String>();
+		thecheckOff = new ArrayList<String>();
 		Vote v = new Vote("1111", "Kajsa", "1", true);
 		Vote v2 = new Vote("2222", "Cicci", "2", true);
 		Vote v3 = new Vote("3333", "Kajsas kompis", "1", true);
@@ -43,11 +45,11 @@ public class CTFServer{
 		Vote v = new Vote(info[0], info[1], info[2], true);
 
 		//check if the user aldready has voted or not
-		//TODO: FIXA SÅ ATT EN ANVÄNDARE EJ KAN RÖSTA FLERA GÅNGER
-		if(!theVotes.contains(v)){
+		if(randomNumbers.contains(info[0]) && !thecheckOff.contains(info[0])){
+
 			theVotes.add(v);
 			int choice = Integer.parseInt(info[2]);
-
+			thecheckOff.add(info[0]);
 			theResult.put(choice, (theResult.get(choice)!= null) ? theResult.get(choice) : 0+1);
 			return true;
 		}
@@ -55,14 +57,24 @@ public class CTFServer{
 	
 	}
 
-	public String getResult(){
+	public String getResult(String rnum){
 		int size = theVotes.size();
 		String ans = "";
 		for(Integer key: theResult.keySet()){
             float res = 100*theResult.get(key)/size;
             ans += "Alternative " + key + ": " + res+"%" + " \n";
         }
-
+        
+        if(thecheckOff.contains(rnum)){
+        	for(Vote v: theVotes) {
+        		if(Integer.parseInt(v.getValidationNr()) == Integer.parseInt(rnum)) {
+        			ans += "You voted: " + v.getVote() + " \n";
+        			break;
+        		}
+        	}
+        } else {
+        	ans += "You have not voted yet \n";
+        }
         //print who has voted or not
         for(Vote v: theVotes){
         	ans += v.getUserID()+" \n";
@@ -124,9 +136,8 @@ public class CTFServer{
 						int choice = Integer.parseInt(s[0]);
 						
 						if(choice == 2) {
-							//TDOD: fixa så att man kan visa resultatet varje gång
 							if(!theVotes.isEmpty()) {
-								String res = getResult();
+								String res = getResult(s[1]);
 								out.println(res);
 								out.println("");
 							} else {
@@ -134,7 +145,6 @@ public class CTFServer{
 							}
 						}
 						else {
-							//TODO: kolla ifall personen får rösta eller ej. 
 							if(!randomNumbers.contains(s[0])) {
 								System.out.println("You are not allowed to vote");
 							} else {
@@ -143,7 +153,7 @@ public class CTFServer{
 									out.println("Your vote has been registred!");
 									out.println("");
 								} else {
-									out.println("You already voted!");
+									out.println("You have already voted!");
 									out.println("");
 								}
 							}

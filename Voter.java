@@ -128,7 +128,7 @@ public class Voter{
 								
 
 						case 2:
-							String s = "2";
+							String s = "2 " + validationNr;
 							socketOutCTF.println(s);
 							socketOutCTF.println("");
 
