@@ -19,12 +19,10 @@ public class CLAServer {
 	static final int CTF_PORT = 8187;
 	static private String KEYSTORE = "keystores/secureKeyStore.ks";
 	static private String TRUSTSTORE = "keystores/secureTrustStore.ks";
-	//static private String CTFKEYSTORE = "keystores/ctfKeystore.ks";
-	//static private String CTFTRUSTSTORE = "keystores/CTFtruststore.ks";
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
-	// the list 
+	// the list
 	Hashtable<String, Integer> randomList = new Hashtable<String, Integer>();
 
 	CLAServer (int port, InetAddress host,  String keystore, String truststore) {
@@ -101,27 +99,58 @@ public class CLAServer {
 		PrintWriter out = new PrintWriter(incoming.getOutputStream(), true);
 
 		String str;
-		while(!(str = in.readLine()).equals("")) {
-			// check the voter
-			if(checkPersonalNr(str)){
-				// generate a random key and send it back to voter
-				key = generateRandomKey(str);
-				out.println(key);
-				out.println("");
-				System.out.println(randomList.get(str));
+		int r = 0;
+		do{
+			while(!(str = in.readLine()).equals("")) {
+				// check the voter
+				r = checkPersonalNr(str);
+				if(r != 0){
+					// generate a random key and send it back to voter
+					out.println(r);
+					out.println("");
+					System.out.println(randomList.get(str));
+				}
+				else {
+					out.println(0);
+					out.println("");
+					System.out.println();
+					System.out.println("Error!");
+				}
 			}
-			else out.println("Error!");
-		}
+		}while(r == 0);
 		out.close();
 		in.close();
 		incoming.close();
 
-		keystore = KEYSTORE;
-		truststore = TRUSTSTORE;
 		port = CTF_PORT;
 		run();
 	}
 
+	private int checkPersonalNr(String personalNr) {
+		// validate personal number
+		// check for double voters
+		if(personalNr.length() != 10) {
+			System.out.println("Invalid personl number");
+			return 0;
+		} 
+		else if(randomList.containsKey(personalNr)) {
+			if(randomList.get(personalNr) == 0) {
+				return generateRandomKey(personalNr);
+			} else {
+				return randomList.get(personalNr);
+			}
+		} else {
+			// create a random key
+			System.out.println("Something went wrong");
+			return 0;
+		}
+	}
+
+	private void createVotingList() {
+		randomList.put("9104174444", 0);
+		randomList.put("9211114323", 0);
+		randomList.put("9007297243", 0);
+	}
 
 	private void sendingToCTF(SSLSocket client) throws IOException {
 		try{
@@ -130,29 +159,10 @@ public class CLAServer {
 			PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
 			socketOut.println(key);
 			socketOut.println("");
-			
-			//Thread.sleep(40000);
 
 		}catch( Exception x ) {
 			System.out.println( x );
 			x.printStackTrace();
-		}
-	}
-
-	private boolean checkPersonalNr(String personalNr) {
-		// validate personal number
-		// check for double voters
-		if(personalNr.length() != 2) {
-			System.out.println("Invalid personl number");
-			return false;
-		} 
-		else if(randomList.containsKey(personalNr)) {
-			System.out.println("You have already voted");
-			return false;
-		} else {
-			// create a random key
-			System.out.println("Creating random number");
-			return true;
 		}
 	}
 	// create random key
@@ -168,6 +178,7 @@ public class CLAServer {
 			randomKey = random.nextInt();
 
 			// put key and voter into randomList
+			randomList.remove(personalNr);
 			randomList.put(personalNr, randomKey);
 		} catch( Exception x ) {
 			System.out.println(x);
@@ -188,8 +199,8 @@ public class CLAServer {
 		}
 
 		CLAServer addServe = new CLAServer(port, host, keystore, truststore);
-		//while(true)
-			addServe.run();	
+		addServe.createVotingList();
+		addServe.run();	
 		
 		
 	}
