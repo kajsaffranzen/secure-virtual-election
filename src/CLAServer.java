@@ -71,18 +71,6 @@ public class CLAServer {
 		try{
 		if(port == VOTER_PORT) {
 			SSLServerSocketFactory sslServerFactory = sslContext.getServerSocketFactory();
-
-			// start listning for connections on the specfic port
-			/*SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(CLIENT_PORT);
-			sss.setEnabledCipherSuites(sss.getSupportedCipherSuites());
-			SSLSocket incoming = (SSLSocket)sss.accept();
-			System.out.println("CLA connected to server");
-			// get content from client
-			BufferedReader in;
-			in = new BufferedReader( new InputStreamReader(incoming.getInputStream()));
-			// send content to client
-			PrintWriter out = new PrintWriter(incoming.getOutputStream(), true);*/
-
 			
 			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(port);
 			sss.setEnabledCipherSuites(sss.getSupportedCipherSuites());
@@ -143,7 +131,7 @@ public class CLAServer {
 			socketOut.println(key);
 			socketOut.println("");
 			
-			Thread.sleep(100);
+			//Thread.sleep(40000);
 
 		}catch( Exception x ) {
 			System.out.println( x );
@@ -200,6 +188,9 @@ public class CLAServer {
 		}
 
 		CLAServer addServe = new CLAServer(port, host, keystore, truststore);
-		addServe.run();
+		//while(true)
+			addServe.run();	
+		
+		
 	}
 }
