@@ -179,6 +179,7 @@ public class CLAServer {
 
 			// put key and voter into randomList
 			randomList.remove(personalNr);
+			key = randomKey;
 			randomList.put(personalNr, randomKey);
 		} catch( Exception x ) {
 			System.out.println(x);

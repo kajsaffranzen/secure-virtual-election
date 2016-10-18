@@ -61,17 +61,20 @@ public class Voter{
 						
 			
 			//send a message to the CLA asking for a validation number, must  10
-			System.out.println("Enter your digits: ");
-			String theDigits = (new BufferedReader(new InputStreamReader(System.in))).readLine();
-			socketOut.println(theDigits);
-			socketOut.println("");
-
 			String str;
 			String randomNumber = "";
-			while(!(str = socketIn.readLine()).equals("")){
-				randomNumber = str;
-				System.out.println("Voter str: " + randomNumber);
-			}
+			do{
+				System.out.println("Enter your digits: ");
+				String theDigits = (new BufferedReader(new InputStreamReader(System.in))).readLine();
+				socketOut.println(theDigits);
+				socketOut.println("");
+
+				
+				while(!(str = socketIn.readLine()).equals("")){
+					randomNumber = str;
+					System.out.println("Voter str: " + randomNumber);
+				}
+			} while(Integer.parseInt(randomNumber) == 0);
 			Boolean test = false;
 
 			do{		
@@ -119,9 +122,9 @@ public class Voter{
 								if(a != ""){
 									System.out.println("test: " + test);
 									test = true;
-									break;
 								}
 							}while(!test);
+							break;
 								
 
 						case 2:
@@ -143,11 +146,10 @@ public class Voter{
 									
 									test = true;
 									System.out.println("test: " + test);
-									break;
 								}
 							}while(!test);
 							printResult(ans);
-							
+							break;
 					}
 					
 				}
