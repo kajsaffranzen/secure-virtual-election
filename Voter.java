@@ -62,8 +62,10 @@ public class Voter{
 			socketOut.println("");
 
 			String str;
+			String randomNumber = "";
 			while(!(str = socketIn.readLine()).equals("")){
-				System.out.println("Voter str: " + str);
+				randomNumber = str;
+				System.out.println("Voter str: " + randomNumber);
 			}
 
 			//ifuser is allowed to vote
@@ -82,12 +84,12 @@ public class Voter{
 					clientToCTF.setNeedClientAuth(true);
 					clientToCTF.setEnabledCipherSuites(sslFact.getSupportedCipherSuites());
 					System.out.println("i do");
-					/*BufferedReader socketInCTF;
+					BufferedReader socketInCTF;
 					socketInCTF = new BufferedReader(new InputStreamReader(clientToCTF.getInputStream()));
 					PrintWriter socketOutCTF = new PrintWriter(clientToCTF.getOutputStream(), true);
 
 					int option = createOptionMenu();
-					String validationNr = "12345";
+					String validationNr = randomNumber;
 					
 					switch(option){
 						case 1:
@@ -112,7 +114,7 @@ public class Voter{
 
 							printResult(ans);
 							break;
-					}*/
+					}
 					
 				}
 				else System.out.println("To bad, you can't vote!");	

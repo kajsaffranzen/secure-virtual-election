@@ -19,8 +19,8 @@ public class CLAServer {
 	static final int CTF_PORT = 8187;
 	static private String KEYSTORE = "keystores/secureKeyStore.ks";
 	static private String TRUSTSTORE = "keystores/secureTrustStore.ks";
-	static private String CTFKEYSTORE = "keystores/ctfKeystore.ks";
-	static private String CTFTRUSTSTORE = "keystores/CTFtruststore.ks";
+	//static private String CTFKEYSTORE = "keystores/ctfKeystore.ks";
+	//static private String CTFTRUSTSTORE = "keystores/CTFtruststore.ks";
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
@@ -128,8 +128,8 @@ public class CLAServer {
 		in.close();
 		incoming.close();
 
-		keystore = CTFKEYSTORE;
-		truststore = CTFTRUSTSTORE;
+		keystore = KEYSTORE;
+		truststore = TRUSTSTORE;
 		port = CTF_PORT;
 		run();
 	}

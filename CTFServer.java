@@ -161,7 +161,9 @@ public class CTFServer implements Runnable{
 		if(!theVotes.contains(v)){
 			theVotes.add(v);
 			int choice = Integer.parseInt(info[2]);
-			theResult.put(choice, theResult.getOrDefault(choice, 0) +1);
+			//theResult.put(choice, theResult.getOrDefault(choice, 0) +1);
+
+			theResult.put(choice, (theResult.get(choice)!= null) ? theResult.get(choice) : 0+1);
 			return true;
 		}
 		else return false;
@@ -192,8 +194,8 @@ public class CTFServer implements Runnable{
 		try{
 			int port = CLA_PORT;
 			
-			String keystore = CTFKEYSTORE;
-			String truststore = CTFTRUSTSTORE;
+			String keystore = KEYSTORE;
+			String truststore = TRUSTSTORE;
 			addCTFServer = new CTFServer(port, keystore, truststore);
 			addCTFServer.setVotingList();
 			
