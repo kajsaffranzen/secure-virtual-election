@@ -4,7 +4,7 @@ import java.security.*;
 import java.net.*;
 import javax.net.ssl.*;
 
-public class CTFServerTemp {
+public class CTFServer{
 	private int port;
 	private String keystore; 
 	private String truststore;
@@ -17,13 +17,11 @@ public class CTFServerTemp {
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
-	private ArrayList<String> randomNumbers; // = new ArrayList<String>();
-	private ArrayList<Vote> theVotes; // = new ArrayList<Vote>();
+	private ArrayList<String> randomNumbers;
+	private ArrayList<Vote> theVotes; 
 	private Map<Integer, Integer> theResult;
 
-	SSLSocket sslVoter, sslCTF;
-
-	CTFServerTemp(){
+	CTFServer(){
 		System.out.println("Running");
 	}
 
@@ -41,16 +39,14 @@ public class CTFServerTemp {
 		theResult.put(2, 1);
 	}
 
-
 	public Boolean requestMyVote(String[] info){
 		Vote v = new Vote(info[0], info[1], info[2], true);
 
 		//check if the user aldready has voted or not
-		//TODO: FIX THIS
+		//TODO: FIXA SÅ ATT EN ANVÄNDARE EJ KAN RÖSTA FLERA GÅNGER
 		if(!theVotes.contains(v)){
 			theVotes.add(v);
 			int choice = Integer.parseInt(info[2]);
-			//theResult.put(choice, theResult.getOrDefault(choice, 0) +1);
 
 			theResult.put(choice, (theResult.get(choice)!= null) ? theResult.get(choice) : 0+1);
 			return true;
@@ -63,7 +59,6 @@ public class CTFServerTemp {
 		int size = theVotes.size();
 		String ans = "";
 		for(Integer key: theResult.keySet()){
-            //System.out.println("Option: " + key + " - " + theResult.get(key));
             float res = 100*theResult.get(key)/size;
             ans += "Alternative " + key + ": " + res+"%" + " \n";
         }
@@ -72,13 +67,11 @@ public class CTFServerTemp {
         for(Vote v: theVotes){
         	ans += v.getUserID()+" \n";
         }
-
         return ans;
 	}
 
 	public void run(){
 		try{
-			System.out.println("The client is running");
 			KeyStore ks = KeyStore.getInstance("JCEKS");
 			ks.load(new FileInputStream(KEYSTORE),
 				ALIASPASSWD.toCharArray());
@@ -108,50 +101,48 @@ public class CTFServerTemp {
 			SSLSocket sslCTF = (SSLSocket)sssCLA.accept();
 			System.out.println("CTF is connected!");
 
+			BufferedReader socketIn;
+			socketIn = new BufferedReader(new InputStreamReader(sslVoter.getInputStream()));
+
+			BufferedReader socketIn2;
+			socketIn2 = new BufferedReader(new InputStreamReader(sslCTF.getInputStream()));
+
+			PrintWriter out = new PrintWriter(sslVoter.getOutputStream(), true);
+
+			String claStr = "";
+
+			while(!(claStr = socketIn2.readLine()).equals("")){
+				System.out.println("CLA str: " + claStr);
+				randomNumbers.add(claStr);
+			}
 			
-
-				BufferedReader socketIn;
-				socketIn = new BufferedReader(new InputStreamReader(sslVoter.getInputStream()));
-
-				BufferedReader socketIn2;
-				socketIn2 = new BufferedReader(new InputStreamReader(sslCTF.getInputStream()));
-
-				PrintWriter out = new PrintWriter(sslVoter.getOutputStream(), true);
-
-				String str;
-
-				while(!(str = socketIn2.readLine()).equals("")){
-					System.out.println("CLA str: " + str);
-					randomNumbers.add(str);
-				}
-			while(true){
+			do{
+				String str = "";
 				while(!(str = socketIn.readLine()).equals("")){
 					try{
 						String[] s = str.split(" ");
 						int choice = Integer.parseInt(s[0]);
-
+						
 						if(choice == 2) {
+							//TDOD: fixa så att man kan visa resultatet varje gång
 							if(!theVotes.isEmpty()) {
 								String res = getResult();
 								out.println(res);
 								out.println("");
-
 							} else {
 								System.out.println("No one has voted jet");
 							}
 						}
 						else {
+							//TODO: kolla ifall personen får rösta eller ej. 
 							if(!randomNumbers.contains(s[0])) {
 								System.out.println("You are not allowed to vote");
 							} else {
-								//Vote v = new Vote(s[0], s[1], s[2], true);
+
 								if(requestMyVote(s)) {
-									//theVotes.add(v);
-									System.out.println("Your vote has been registred");
 									out.println("Your vote has been registred!");
 									out.println("");
 								} else {
-									System.out.println("You have already voted");
 									out.println("You already voted!");
 									out.println("");
 								}
@@ -161,7 +152,8 @@ public class CTFServerTemp {
 						System.out.println("Sorry, something is wrong");
 					}
 				}
-			}
+				
+			}while(true);
 
 		} catch(Exception x) {
 			System.out.println(x);
@@ -173,9 +165,9 @@ public class CTFServerTemp {
 	}
 
 	public static void main(String[] args) {
-		CTFServerTemp ctf;
+		CTFServer ctf;
 		try{
-			ctf = new CTFServerTemp();
+			ctf = new CTFServer();
 			ctf.setVotingList();
 			ctf.run();
 			

@@ -4,7 +4,7 @@ import java.security.*;
 import java.net.*;
 import javax.net.ssl.*;
 
-public class CTFServerTemp {
+public class CTFServer{
 	private int port;
 	private String keystore; 
 	private String truststore;
@@ -23,7 +23,7 @@ public class CTFServerTemp {
 
 	SSLSocket sslVoter, sslCTF;
 
-	CTFServerTemp(){
+	CTFServer(){
 		System.out.println("Running");
 	}
 
@@ -60,7 +60,10 @@ public class CTFServerTemp {
 	public String getResult(){
 		int size = theVotes.size();
 		String ans = "";
+		System.out.println("hej: ");
+		System.out.println("size: " + theResult.size());
 		for(Integer key: theResult.keySet()){
+			System.out.println("i result.key: " + theResult.get(key));
             float res = 100*theResult.get(key)/size;
             ans += "Alternative " + key + ": " + res+"%" + " \n";
         }
@@ -128,7 +131,8 @@ public class CTFServerTemp {
 
 						if(choice == 2) {
 							//TDOD: fixa så att man kan visa resultatet varje gång
-							if(!theVotes.isEmpty()) {
+							System.out.println("nu ska vi visa!!");
+							if(!theResult.isEmpty()) {
 								String res = getResult();
 								out.println(res);
 								out.println("");
@@ -171,9 +175,9 @@ public class CTFServerTemp {
 	}
 
 	public static void main(String[] args) {
-		CTFServerTemp ctf;
+		CTFServer ctf;
 		try{
-			ctf = new CTFServerTemp();
+			ctf = new CTFServer();
 			ctf.setVotingList();
 			ctf.run();
 			

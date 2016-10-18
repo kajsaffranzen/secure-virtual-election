@@ -72,11 +72,14 @@ public class Voter{
 				randomNumber = str;
 				System.out.println("Voter str: " + randomNumber);
 			}
+			Boolean test = false;
+
 			do{		
+				test = false;
 				if(str != "Error"){
+					//connect to CTFserv
 					
 					if(count == 0){
-						//connect to CTFserv
 						SSLContext sslContextCTF = SSLContext.getInstance("TLS");
 						sslContextCTF.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
@@ -86,40 +89,65 @@ public class Voter{
 						clientToCTF.setNeedClientAuth(true);
 						clientToCTF.setEnabledCipherSuites(sslFact.getSupportedCipherSuites());
 						socketInCTF = new BufferedReader(new InputStreamReader(clientToCTF.getInputStream()));
-					 	socketOutCTF = new PrintWriter(clientToCTF.getOutputStream(), true);
+						socketOutCTF = new PrintWriter(clientToCTF.getOutputStream(), true);
 					}
+
 					
-					count++;
 					
+					count++;	
+
 					int option = createOptionMenu();
 					String validationNr = randomNumber;
 					
-					//TODO: KOLLA IFALL MAN REDA HAR RÖSTAT OCH VAD MAN HAR RÖSTAT PÅ
+					String input = "";
 					switch(option){
 						case 1:
+							//TODO: få återkoppling att man har röstat
 							//send voting message to CTF
 							String theVote = createVote(validationNr);
 							socketOutCTF.println(theVote);
 							socketOutCTF.println("");
-							break;
+							
+							String a = "";
+							do{
+								while(!(input = socketInCTF.readLine()).equals("")){
+									a += input;
+								}
+
+								System.out.println(a + "\n");
+								
+								if(a != ""){
+									System.out.println("test: " + test);
+									test = true;
+									break;
+								}
+							}while(!test);
+								
 
 						case 2:
-							//TODO: få återkoppling att man har röstat
-							//TODO: även sen vilka som inte har röstat
-
 							String s = "2";
 							socketOutCTF.println(s);
 							socketOutCTF.println("");
 
 							String str1 = "";
 							String ans = "";
+							//System.out.println("socketInCTF: " + socketInCTF);
+							do{
+								while(!(input = socketInCTF.readLine()).equals("")){
+									//System.out.println("str1: " + str1);
+									ans += input + "\n";	
+								}
 							
-							while(!(str1 = socketInCTF.readLine()).equals("")){
-								ans += str1 + "\n";
-							}
 
+								if(ans != ""){
+									
+									test = true;
+									System.out.println("test: " + test);
+									break;
+								}
+							}while(!test);
 							printResult(ans);
-							break;
+							
 					}
 					
 				}
