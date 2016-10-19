@@ -57,9 +57,6 @@ public class Voter{
 			PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
 			
 
-			//ifuser is allowed to vote
-						
-			
 			//send a message to the CLA asking for a validation number, must  10
 			String str;
 			String randomNumber = "";
@@ -79,9 +76,8 @@ public class Voter{
 
 			do{		
 				test = false;
+				//connect to CTFserv
 				if(str != "Error"){
-					//connect to CTFserv
-					
 					if(count == 0){
 						SSLContext sslContextCTF = SSLContext.getInstance("TLS");
 						sslContextCTF.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
@@ -94,8 +90,6 @@ public class Voter{
 						socketInCTF = new BufferedReader(new InputStreamReader(clientToCTF.getInputStream()));
 						socketOutCTF = new PrintWriter(clientToCTF.getOutputStream(), true);
 					}
-
-					
 					
 					count++;	
 
@@ -105,7 +99,6 @@ public class Voter{
 					String input = "";
 					switch(option){
 						case 1:
-							//TODO: få återkoppling att man har röstat
 							//send voting message to CTF
 							String theVote = createVote(validationNr);
 							socketOutCTF.println(theVote);
@@ -116,37 +109,28 @@ public class Voter{
 								while(!(input = socketInCTF.readLine()).equals("")){
 									a += input;
 								}
-
-								System.out.println(a + "\n");
 								
-								if(a != ""){
-									System.out.println("test: " + test);
+								if(a != "")
 									test = true;
-								}
+								
 							}while(!test);
 							break;
 								
 
 						case 2:
+							//see the result 
 							String s = "2 " + validationNr;
 							socketOutCTF.println(s);
 							socketOutCTF.println("");
 
-							String str1 = "";
 							String ans = "";
-							//System.out.println("socketInCTF: " + socketInCTF);
 							do{
 								while(!(input = socketInCTF.readLine()).equals("")){
-									//System.out.println("str1: " + str1);
 									ans += input + "\n";	
 								}
-							
-
-								if(ans != ""){
-									
+								if(ans != "")
 									test = true;
-									System.out.println("test: " + test);
-								}
+								
 							}while(!test);
 							printResult(ans);
 							break;
@@ -162,10 +146,11 @@ public class Voter{
 		}
 	}
 
+	//create the option menu
 	public int createOptionMenu(){
 		int n = 0;
 		try{
-			System.out.println("What do you want to do?");
+			System.out.println(" \n What do you want to do?");
 			System.out.println("1. Vote");
 			System.out.println("2. See result");
 			String ans = (new BufferedReader(new InputStreamReader(System.in))).readLine();
@@ -183,7 +168,7 @@ public class Voter{
 		String ans = _validationNr + " ";
 
 		try{
-			System.out.println("Enter a username: ");
+			System.out.println(" \n Enter a username: ");
 			ans += (new BufferedReader(new InputStreamReader(System.in))).readLine() + " ";
 			System.out.println("********************************");
 			System.out.println("What do you want for dinner?");
@@ -200,15 +185,13 @@ public class Voter{
 		return ans;
 	}
 
-	public void printResult(String s){
-		
-		System.out.println("\n \n The result: ");
+	//prints the result
+	public void printResult(String s){		
+		System.out.println("\n The result: \n ");
 		System.out.println(s);
 	}
 
-	//creates a identification number
-	//creates a message: identification nr, validation nr & vote
-	//sends the message to CTF
+
 	public static void main (String[] args){
 		try {
 			InetAddress host = InetAddress.getLocalHost();

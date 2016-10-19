@@ -31,12 +31,11 @@ public class CTFServer{
 		theResult = new HashMap<Integer, Integer>();
 		randomNumbers = new ArrayList<String>();
 		thecheckOff = new ArrayList<String>();
-		Vote v = new Vote("1111", "Kajsa", "1", true);
-		Vote v2 = new Vote("2222", "Cicci", "2", true);
-		Vote v3 = new Vote("3333", "Kajsas kompis", "1", true);
-		theVotes.add(v);
-		theVotes.add(v2);
-		theVotes.add(v3);
+		
+		//create dummy data
+		theVotes.add(new Vote("1111", "Kajsa", "1", true));
+		theVotes.add(new Vote("2222", "Cicci", "2", true));
+		theVotes.add(new Vote("3333", "Kajsas kompis", "1", true));
 		theResult.put(1, 2);
 		theResult.put(2, 1);
 	}
@@ -46,7 +45,6 @@ public class CTFServer{
 
 		//check if the user aldready has voted or not
 		if(randomNumbers.contains(info[0]) && !thecheckOff.contains(info[0])){
-
 			theVotes.add(v);
 			int choice = Integer.parseInt(info[2]);
 			thecheckOff.add(info[0]);
@@ -65,20 +63,23 @@ public class CTFServer{
             ans += "Alternative " + key + ": " + res+"%" + " \n";
         }
         
+        //print who has voted or not
+        ans += " Voters: \n";
+        for(Vote v: theVotes){
+        	ans += v.getUserID()+" \n";
+        }
+
         if(thecheckOff.contains(rnum)){
         	for(Vote v: theVotes) {
         		if(Integer.parseInt(v.getValidationNr()) == Integer.parseInt(rnum)) {
-        			ans += "You voted: " + v.getVote() + " \n";
+        			ans += "\n You voted: " + v.getVote() + " \n";
         			break;
         		}
         	}
         } else {
         	ans += "You have not voted yet \n";
         }
-        //print who has voted or not
-        for(Vote v: theVotes){
-        	ans += v.getUserID()+" \n";
-        }
+
         return ans;
 	}
 
@@ -169,9 +170,6 @@ public class CTFServer{
 			System.out.println(x);
 			x.printStackTrace();
 		}
-
-
-
 	}
 
 	public static void main(String[] args) {

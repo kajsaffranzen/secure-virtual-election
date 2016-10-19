@@ -7,9 +7,7 @@ import java.util.*;
 
 //Class that maintains Validations ID Lists
 public class CLAServer {
-	//send back random validation number to voter & to CTF
-	//exempel finns i artikel
-
+	
 	private int port, key;
 	private InetAddress host;
 	private String keystore; 
