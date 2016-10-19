@@ -7,9 +7,7 @@ import java.util.*;
 
 //Class that maintains Validations ID Lists
 public class CLAServer {
-	//send back random validation number to voter & to CTF
-	//exempel finns i artiekel
-
+	
 	private int port, key;
 	private InetAddress host;
 	private String keystore; 
@@ -19,14 +17,10 @@ public class CLAServer {
 	static final int CTF_PORT = 8187;
 	static private String KEYSTORE = "keystores/secureKeyStore.ks";
 	static private String TRUSTSTORE = "keystores/secureTrustStore.ks";
-
-	static private String CTFKEYSTORE = "keystores/ctfKeystore.ks";
-	static private String CTFTRUSTSTORE = "keystores/CTFtruststore.ks";
-
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
-	// the list 
+	// the list
 	Hashtable<String, Integer> randomList = new Hashtable<String, Integer>();
 
 	CLAServer (int port, InetAddress host,  String keystore, String truststore) {
@@ -70,26 +64,31 @@ public class CLAServer {
 	}
 
 	private void listningToPort(SSLContext sslContext) throws IOException {
-
+		try{
 		if(port == VOTER_PORT) {
 			SSLServerSocketFactory sslServerFactory = sslContext.getServerSocketFactory();
 			
 			SSLServerSocket sss = (SSLServerSocket)sslServerFactory.createServerSocket(port);
 			sss.setEnabledCipherSuites(sss.getSupportedCipherSuites());
 			SSLSocket incoming = (SSLSocket)sss.accept();
+			System.out.println("CLA connected to server");
+
 			
 			listningToVoter(incoming);
 
 		} else if(port == CTF_PORT) {
 			SSLSocketFactory sslFact = sslContext.getSocketFactory();
-			
+
 			// negotiating with the server to agree upon the cipher suite that will be used
 			SSLSocket client = (SSLSocket)sslFact.createSocket(host, port);
 			client.setEnabledCipherSuites(client.getSupportedCipherSuites());
-
 			sendingToCTF(client);
 
 		} else System.out.println("Problem in PARADISE!");
+	}catch( Exception x ) {
+			System.out.println( x );
+			x.printStackTrace();
+		}
 	}
 
 	private void listningToVoter(SSLSocket incoming) throws IOException {
@@ -98,48 +97,70 @@ public class CLAServer {
 		PrintWriter out = new PrintWriter(incoming.getOutputStream(), true);
 
 		String str;
-		while(!(str = in.readLine()).equals("")) {
-			// check the voter
-			if(checkPersonalNr(str)){
-				// generate a random key and send it back to voter
-				key = generateRandomKey(str);
-				out.println(key);
-				System.out.println(randomList.get(str));
+		int r = 0;
+		do{
+			while(!(str = in.readLine()).equals("")) {
+				// check the voter
+				r = checkPersonalNr(str);
+				if(r != 0){
+					// generate a random key and send it back to voter
+					out.println(r);
+					out.println("");
+					System.out.println(randomList.get(str));
+				}
+				else {
+					out.println(0);
+					out.println("");
+					System.out.println();
+					System.out.println("Error!");
+				}
 			}
-		}
+		}while(r == 0);
 		out.close();
 		in.close();
-
 		incoming.close();
 
-		keystore = CTFKEYSTORE;
-		truststore = CTFTRUSTSTORE;
 		port = CTF_PORT;
-
 		run();
 	}
 
-	private void sendingToCTF(SSLSocket client) throws IOException {
-		BufferedReader socketIn;
-		socketIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
-		PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
-		socketOut.println(key);
-	}
-
-	private boolean checkPersonalNr(String personalNr) {
+	private int checkPersonalNr(String personalNr) {
 		// validate personal number
 		// check for double voters
 		if(personalNr.length() != 10) {
 			System.out.println("Invalid personl number");
-			return false;
+			return 0;
 		} 
 		else if(randomList.containsKey(personalNr)) {
-			System.out.println("You have already voted");
-			return false;
+			if(randomList.get(personalNr) == 0) {
+				return generateRandomKey(personalNr);
+			} else {
+				return randomList.get(personalNr);
+			}
 		} else {
 			// create a random key
-			System.out.println("Creating random number");
-			return true;
+			System.out.println("Something went wrong");
+			return 0;
+		}
+	}
+
+	private void createVotingList() {
+		randomList.put("9104174444", 0);
+		randomList.put("9211114323", 0);
+		randomList.put("9007297243", 0);
+	}
+
+	private void sendingToCTF(SSLSocket client) throws IOException {
+		try{
+			BufferedReader socketIn;
+			socketIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			PrintWriter socketOut = new PrintWriter(client.getOutputStream(), true);
+			socketOut.println(key);
+			socketOut.println("");
+
+		}catch( Exception x ) {
+			System.out.println( x );
+			x.printStackTrace();
 		}
 	}
 	// create random key
@@ -155,6 +176,8 @@ public class CLAServer {
 			randomKey = random.nextInt();
 
 			// put key and voter into randomList
+			randomList.remove(personalNr);
+			key = randomKey;
 			randomList.put(personalNr, randomKey);
 		} catch( Exception x ) {
 			System.out.println(x);
@@ -175,6 +198,9 @@ public class CLAServer {
 		}
 
 		CLAServer addServe = new CLAServer(port, host, keystore, truststore);
-		addServe.run();
+		addServe.createVotingList();
+		addServe.run();	
+		
+		
 	}
 }

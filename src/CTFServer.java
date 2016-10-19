@@ -17,10 +17,11 @@ public class CTFServer{
 	static final String STOREPASSWD = "abcdef";
 	static final String ALIASPASSWD = "123456";
 
-	private ArrayList<String> randomNumbers;
-	private ArrayList<String> thecheckOff;
-	private ArrayList<Vote> theVotes; 
+	private ArrayList<String> randomNumbers; // = new ArrayList<String>();
+	private ArrayList<Vote> theVotes; // = new ArrayList<Vote>();
 	private Map<Integer, Integer> theResult;
+
+	SSLSocket sslVoter, sslCTF;
 
 	CTFServer(){
 		System.out.println("Running");
@@ -30,12 +31,12 @@ public class CTFServer{
 		theVotes = new ArrayList<Vote>();
 		theResult = new HashMap<Integer, Integer>();
 		randomNumbers = new ArrayList<String>();
-		thecheckOff = new ArrayList<String>();
-		
-		//create dummy data
-		theVotes.add(new Vote("1111", "Kajsa", "1", true));
-		theVotes.add(new Vote("2222", "Cicci", "2", true));
-		theVotes.add(new Vote("3333", "Kajsas kompis", "1", true));
+		Vote v = new Vote("1111", "Kajsa", "1", true);
+		Vote v2 = new Vote("2222", "Cicci", "2", true);
+		Vote v3 = new Vote("3333", "Kajsas kompis", "1", true);
+		theVotes.add(v);
+		theVotes.add(v2);
+		theVotes.add(v3);
 		theResult.put(1, 2);
 		theResult.put(2, 1);
 	}
@@ -44,10 +45,11 @@ public class CTFServer{
 		Vote v = new Vote(info[0], info[1], info[2], true);
 
 		//check if the user aldready has voted or not
-		if(randomNumbers.contains(info[0]) && !thecheckOff.contains(info[0])){
+		//TODO: FIXA SÅ ATT EN ANVÄNDARE EJ KAN RÖSTA FLERA GÅNGER
+		if(!theVotes.contains(v)){
 			theVotes.add(v);
 			int choice = Integer.parseInt(info[2]);
-			thecheckOff.add(info[0]);
+
 			theResult.put(choice, (theResult.get(choice)!= null) ? theResult.get(choice) : 0+1);
 			return true;
 		}
@@ -55,27 +57,18 @@ public class CTFServer{
 	
 	}
 
-	public String getResult(String rnum){
+	public String getResult(){
 		int size = theVotes.size();
 		String ans = "";
+		System.out.println("hej: ");
+		System.out.println("size: " + theResult.size());
 		for(Integer key: theResult.keySet()){
+			System.out.println("i result.key: " + theResult.get(key));
             float res = 100*theResult.get(key)/size;
             ans += "Alternative " + key + ": " + res+"%" + " \n";
         }
-        
-        //print who has voted or not
-        if(thecheckOff.contains(rnum)){
-        	for(Vote v: theVotes) {
-        		if(Integer.parseInt(v.getValidationNr()) == Integer.parseInt(rnum)) {
-        			ans += "You voted: " + v.getVote() + " \n";
-        			break;
-        		}
-        	}
-        } else {
-        	ans += "You have not voted yet \n";
-        }
 
-        ans += " Voters: \n";
+        //print who has voted or not
         for(Vote v: theVotes){
         	ans += v.getUserID()+" \n";
         }
@@ -85,6 +78,7 @@ public class CTFServer{
 
 	public void run(){
 		try{
+			System.out.println("The client is running");
 			KeyStore ks = KeyStore.getInstance("JCEKS");
 			ks.load(new FileInputStream(KEYSTORE),
 				ALIASPASSWD.toCharArray());
@@ -122,39 +116,45 @@ public class CTFServer{
 
 			PrintWriter out = new PrintWriter(sslVoter.getOutputStream(), true);
 
-			String claStr = "";
+			String str;
 
-			while(!(claStr = socketIn2.readLine()).equals("")){
-				System.out.println("CLA str: " + claStr);
-				randomNumbers.add(claStr);
+			while(!(str = socketIn2.readLine()).equals("")){
+				System.out.println("CLA str: " + str);
+				randomNumbers.add(str);
 			}
 			
-			do{
-				String str = "";
+			while(true){
 				while(!(str = socketIn.readLine()).equals("")){
 					try{
 						String[] s = str.split(" ");
 						int choice = Integer.parseInt(s[0]);
-						
+
 						if(choice == 2) {
-							if(!theVotes.isEmpty()) {
-								String res = getResult(s[1]);
+							//TDOD: fixa så att man kan visa resultatet varje gång
+							System.out.println("nu ska vi visa!!");
+							if(!theResult.isEmpty()) {
+								String res = getResult();
 								out.println(res);
 								out.println("");
+
 							} else {
 								System.out.println("No one has voted jet");
 							}
 						}
 						else {
+							//TODO: kolla ifall personen får rösta eller ej. 
 							if(!randomNumbers.contains(s[0])) {
 								System.out.println("You are not allowed to vote");
 							} else {
 
 								if(requestMyVote(s)) {
+									//theVotes.add(v);
+									System.out.println("Your vote has been registred");
 									out.println("Your vote has been registred!");
 									out.println("");
 								} else {
-									out.println("You have already voted!");
+									System.out.println("You have already voted");
+									out.println("You already voted!");
 									out.println("");
 								}
 							}
@@ -163,13 +163,15 @@ public class CTFServer{
 						System.out.println("Sorry, something is wrong");
 					}
 				}
-				
-			}while(true);
+			}
 
 		} catch(Exception x) {
 			System.out.println(x);
 			x.printStackTrace();
 		}
+
+
+
 	}
 
 	public static void main(String[] args) {
